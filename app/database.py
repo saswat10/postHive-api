@@ -7,7 +7,12 @@ from .config import settings
 # SQLALCHEMY_DATABASE_URL = 'postgresql://<username>:<password>@<ip_address/hostname>/<database_name>'
 # postgres://fastapi_a1v1_user:YCrDxTUFYnDQVnkYgw4EXPPpTMLwj91k@dpg-ckr4gm05vl2c73ak865g-a/fastapi_a1v1
 # postgres://fastapi_a1v1_user:YCrDxTUFYnDQVnkYgw4EXPPpTMLwj91k@dpg-ckr4gm05vl2c73ak865g-a.oregon-postgres.render.com/fastapi_a1v1
-SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}"
+SQLALCHEMY_DATABASE_URL = f"{settings.postgres_url}"
+
+
+
+# local machine
+# SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
