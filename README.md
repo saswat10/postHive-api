@@ -1,2 +1,3 @@
 ## Python Backend
-Python backend 
+
+This is a backend made using the FastAPI python library and Postgresql as its database.
