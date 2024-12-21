@@ -70,11 +70,15 @@ Core features include:
     $ openssl rand -hex 32
     ```
 5. Initialize the Database
-    ```
+    ```bash
+    alembic revision --autogenerte -m "create tables"
+    alembic upgrade head
     ```
 6. Run the application
     ```bash
     uvicorn app.main:app --reload
+    # or use fastapi
+    fastapi dev app/main.py
     ```
 7. Access the API - Visit `http://127.0.0.1:8000/docs` to explore the API with Swagger UI.
 
