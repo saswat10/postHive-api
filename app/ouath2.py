@@ -20,7 +20,7 @@ ACCESS_TOKEN_EXPIRE_TIME = settings.access_token_expire_minutes
 def create_access_token(data: dict):
     to_encode = data.copy()
 
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_TIME)
+    expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_TIME)
     to_encode.update({"exp": expire})
 
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -36,7 +36,7 @@ def verify_access_token(token: str, credentials_exception):
         if id is None:
             raise credentials_exception
         token_data = schemas.TokenData(id=str(id))
-    except JWTError as e:
+    except JWTError:
         raise credentials_exception
 
 
