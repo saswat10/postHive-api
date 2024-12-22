@@ -78,15 +78,22 @@ Core features include:
     ```bash
     uvicorn app.main:app --reload
     # or use fastapi
-    fastapi dev app/main.py
+    fastapi dev app/main.**py**
     ```
 7. Access the API - Visit `http://127.0.0.1:8000/docs` to explore the API with Swagger UI.
+
+## Testing
+```bash
+$ coverage run -m pytest # run the tests
+$ coverage report -m # see the coverage in the terminal
+$ coverage html # see the coverage in html report
+```
 
 --- 
 ### Future Enhancements
 - [ ] Adding media support (image and video uploads).
 - [ ] Implementing real-time features (e.g., notifications).
-- [ ] Advanced search and sorting.
+- [ ] Advanced search and sorting.****
   
 
 --- 
