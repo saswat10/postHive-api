@@ -4,13 +4,13 @@ from .database import engine
 from .routers import post, user, auth, vote
 from fastapi.middleware.cors import CORSMiddleware
 
-models.Base.metadata.create_all(bind=engine)
-# not required anymore because of the alembic migration
+
+# uncomment the code below if you plan to use SQLalchemy 
+# instead of Alembic
+# models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# for security purposes never use wild card
-# if it is for a specific app then only add that domain name
 origins = ["*"]
 
 app.add_middleware(
@@ -24,7 +24,7 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"message": "Hello world!! "}
+    return {"message": "Hello world!!"}
 
 
 app.include_router(vote.router)

@@ -12,7 +12,7 @@ SQLALCHEMY_DATABASE_URL = f"{settings.postgres_url}"
 
 
 # local machine
-# SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}"
+# SQLALCHEMY_DATABASE_URL = f"postgresql+psycopg://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -27,9 +27,9 @@ def get_db():
         db.close()
 
 
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import time
+# import psycopg2
+# from psycopg2.extras import RealDictCursor
+# import time
 
 # for documentation pupose only
 # connection made using raw sql
