@@ -1,4 +1,7 @@
+from typing import Optional
 from fastapi import status, HTTPException, Depends, APIRouter
+
+from app import ouath2
 from .. import models, schemas, utils
 from ..database import get_db
 from sqlalchemy.orm import Session

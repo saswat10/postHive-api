@@ -104,20 +104,34 @@ def get_post(
     # don't do .all() -> waste of postgres resources
     # better to do .first() -> if you know that there will be only
     # one instance of that id.
-    results = (
-        db.query(models.Post, func.count(models.Vote.post_id).label("votes"))
-        .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
-        .group_by(models.Post.id)
-        .filter(models.Post.id == id)
-        .first()
-    )
+    # results = (
+    #     db.query(models.Post, func.count(models.Vote.post_id).label("votes"))
+    #     .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
+    #     .group_by(models.Post.id)
+    #     .filter(models.Post.id == id)
+    #     .first()
+    # )
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with id:{id} was not found",
         )
+    
+    likes_count = (
+            db.query(models.Vote).filter(models.Vote.post_id == post.id).count()
+        )
 
-    return results
+        # check if user has upvoted
+    upvoted = db.query(models.Vote).filter(
+            models.Vote.post_id == post.id, models.Vote.user_id == current_user.id
+        )
+    upvote_by_user = upvoted.first() is not None
+
+    response = []
+    response.append({"Post": post, "upvoted": upvote_by_user, "votes": likes_count})
+
+
+    return response[0]
 
 
 # delete post
@@ -190,3 +204,4 @@ def update_post(
     db.commit()
 
     return post_query.first()
+
