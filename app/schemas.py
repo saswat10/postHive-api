@@ -64,3 +64,19 @@ class PostOut(BaseModel):
     
     class Config:
         form_attributes = True
+
+class CommentCreate(BaseModel):
+    content: str
+    post_id: int
+
+class CommentUpdate(BaseModel):
+    content: Optional[str]
+
+class CommentResponse(BaseModel):
+    id: int
+    content: str
+    post_id: int
+    user_id: int
+
+    class Config:
+        orm_mode=True

@@ -18,7 +18,9 @@ class Post(Base):
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
 
-    owner = relationship("User")
+    owner = relationship("User", back_populates="posts")
+    comments = relationship("Comments", back_populates="post")
+    votes = relationship("Vote", back_populates="post")
 
 
 class User(Base):
@@ -32,6 +34,10 @@ class User(Base):
         TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")
     )
 
+    posts = relationship("Post", back_populates="owner")
+    votes = relationship("Vote", back_populates="user")
+    comments = relationship("Comments", back_populates="user")
+
 
 class Vote(Base):
     __tablename__ = "votes"
@@ -41,3 +47,22 @@ class Vote(Base):
     post_id = Column(
         Integer, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True
     )
+
+    user = relationship("User", back_populates="votes")
+    post = relationship("Post", back_populates="votes")
+
+
+class Comments(Base):
+    __tablename__ = "comments"
+    
+    id = Column(Integer, nullable=False, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"))
+    content = Column(String, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()") )
+
+    user = relationship("User", back_populates="comments")
+    post = relationship("Post", back_populates="comments")
+
+
+
