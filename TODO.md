@@ -1,0 +1,3 @@
+- get posts by user id
+- get comment by user id
+- add meta data to the get posts

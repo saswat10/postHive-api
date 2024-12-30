@@ -4,6 +4,27 @@ from typing import Optional
 
 from pydantic.types import conint
 
+class Metadata(BaseModel):
+    count: int
+    page: int
+    limit: int
+    total_pages: int
+
+class CommentCreate(BaseModel):
+    content: str
+    post_id: int
+
+class CommentUpdate(BaseModel):
+    content: Optional[str]
+
+class CommentResponse(BaseModel):
+    id: int
+    content: str
+    post_id: int
+    user_id: int
+
+    class Config:
+        form_attributes=True
 
 class UserCreate(BaseModel):
     name: str
@@ -41,6 +62,7 @@ class Post(PostBase):
     created_at: datetime
     owner_id: int
     owner: UserOut
+    comments: list[CommentResponse]
 
 
 
@@ -61,22 +83,13 @@ class Vote(BaseModel):
 class PostOut(BaseModel):
     Post: Post
     votes: int
+    upvoted: bool
     
     class Config:
         form_attributes = True
 
-class CommentCreate(BaseModel):
-    content: str
-    post_id: int
-
-class CommentUpdate(BaseModel):
-    content: Optional[str]
-
-class CommentResponse(BaseModel):
-    id: int
-    content: str
-    post_id: int
-    user_id: int
-
+class AllPostOut(BaseModel):
+    info: Metadata
+    results: list[PostOut]
     class Config:
-        orm_mode=True
+        form_attributes = True
