@@ -96,21 +96,8 @@ def get_post(
     db: Session = Depends(get_db),
     current_user: int = Depends(ouath2.get_current_user),
 ):
-    # cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(id)))
-    # post = cursor.fetchone()
-    # print(post)
-
     post = db.query(models.Post).filter(models.Post.id == id).first()
-    # don't do .all() -> waste of postgres resources
-    # better to do .first() -> if you know that there will be only
-    # one instance of that id.
-    # results = (
-    #     db.query(models.Post, func.count(models.Vote.post_id).label("votes"))
-    #     .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
-    #     .group_by(models.Post.id)
-    #     .filter(models.Post.id == id)
-    #     .first()
-    # )
+
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -121,7 +108,6 @@ def get_post(
             db.query(models.Vote).filter(models.Vote.post_id == post.id).count()
         )
 
-        # check if user has upvoted
     upvoted = db.query(models.Vote).filter(
             models.Vote.post_id == post.id, models.Vote.user_id == current_user.id
         )

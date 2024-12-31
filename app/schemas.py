@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic.types import conint
 
@@ -17,14 +17,6 @@ class CommentCreate(BaseModel):
 class CommentUpdate(BaseModel):
     content: Optional[str]
 
-class CommentResponse(BaseModel):
-    id: int
-    content: str
-    post_id: int
-    user_id: int
-
-    class Config:
-        form_attributes=True
 
 class UserCreate(BaseModel):
     name: str
@@ -41,6 +33,16 @@ class UserOut(BaseModel):
     class Config:
         form_attributes = True
 
+
+class CommentResponse(BaseModel):
+    id: int
+    content: str
+    post_id: int
+    user_id: int
+    user: UserOut
+
+    class Config:
+        form_attributes=True
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -81,7 +83,7 @@ class Vote(BaseModel):
 
 
 class PostOut(BaseModel):
-    Post: Post
+    post: Post
     votes: int
     upvoted: bool
     
@@ -93,3 +95,18 @@ class AllPostOut(BaseModel):
     results: list[PostOut]
     class Config:
         form_attributes = True
+
+class PostResponse(BaseModel):
+    id: int
+    title: str
+    content: str
+    created_at: datetime
+    votes_count: int
+    comments_count: int
+    upvoted: int
+
+# Schema for all posts by a user
+class UserPostsResponse(BaseModel):
+    user_id: int
+    posts_count: int
+    posts: List[PostResponse]
