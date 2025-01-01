@@ -11,183 +11,125 @@ router = APIRouter(
 )
 
 
-# get all the posts
-@router.get(
-    "/",
-    response_model=schemas.AllPostOut,
+@router.post(
+    "/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post
 )
-def get_posts(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(ouath2.get_current_user),
-    page: int = 1,
-    limit: int = 10,
-    search: Optional[str] = "",
-    published: Optional[bool] = True,
-):
-    # calculate offset for pagination
-    offset = (page - 1) * limit
-    total_posts_results = (
-        db.query(models.Post)
-        .filter(models.Post.title.contains(search))
-        .filter(models.Post.published == published)
-        .count()
-    )
-    total_posts = total_posts_results
-
-    posts_results = (
-        db.query(models.Post)
-        .filter(models.Post.title.contains(search))
-        .filter(models.Post.published == published)
-        .offset(offset)
-        .limit(limit)
-    )
-    posts = posts_results.all()
-
-    response = []
-    for post in posts:
-        # count the likes
-        likes_count = (
-            db.query(models.Vote).filter(models.Vote.post_id == post.id).count()
-        )
-
-        # check if user has upvoted
-        upvoted = db.query(models.Vote).filter(
-            models.Vote.post_id == post.id, models.Vote.user_id == current_user.id
-        )
-        upvote_by_user = upvoted.first() is not None
-
-        response.append({"Post": post, "upvoted": upvote_by_user, "votes": likes_count})
-
-    total_pages = (total_posts + limit - 1) // limit
-    metadata = {
-        "count": total_posts,
-        "page": page,
-        "limit": limit,
-        "total_pages": total_pages,
-    }
-
-    return {"info": metadata, "results": response}
-
-
-# create a new post
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
-def create_posts(
+def create_post(
     post: schemas.PostCreate,
     db: Session = Depends(get_db),
-    current_user: int = Depends(ouath2.get_current_user),
+    current_user=Depends(ouath2.get_current_user),
 ):
-    # cursor.execute(
-    #     """INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING *""",
-    #     (post.title, post.content, post.published),
-    # )
-    # new_post = cursor.fetchone()
-    # conn.commit()
-    new_post = models.Post(owner_id=current_user.id, **post.model_dump())
+    new_post = models.Post(**post.dict(), owner_id=current_user.id)
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
     return new_post
 
 
-# get post by id
-@router.get("/{id}", response_model=schemas.PostOut)
-def get_post(
+@router.get("/", response_model=List[schemas.PostWithVotes])
+def get_posts(db: Session = Depends(get_db), limit: int = 10, skip: int = 0):
+    posts = (
+        db.query(models.Post, func.count(models.Vote.post_id).label("votes"), func.count(models.Comments.post_id).label("comments"))
+        .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
+        .group_by(models.Post)
+        .limit(limit)
+        .offset(skip)
+        .all()
+    )
+
+    return [
+        {
+            **post[0].__dict__,
+            "votes": post[1],
+            "comments": post[2],
+            "owner": db.query(models.User)
+            .filter(models.User.id == post[0].owner_id)
+            .first(),
+        }
+        for post in posts
+    ]
+
+
+@router.get("/{id}", response_model=schemas.PostWithVotes)
+def get_post(id: int, db: Session = Depends(get_db)):
+    result = (
+        db.query(models.Post, func.count(models.Vote.post_id).label("votes"), func.count(models.Comments.post_id).label("comments"))
+        .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
+        .group_by(models.Post)
+        .filter(models.Post.id == id)
+        .first()
+    )
+
+    if not result:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    post = result[0].__dict__
+    post["votes"] = result[1]
+    post["comments"] = result[2]
+    post["owner"] = (
+        db.query(models.User).filter(models.User.id == result[0].owner_id).first()
+    )
+
+    return post
+
+
+@router.put("/{id}", response_model=schemas.Post)
+def update_post(
     id: int,
+    updated_post: schemas.PostCreate,
     db: Session = Depends(get_db),
-    current_user: int = Depends(ouath2.get_current_user),
+    current_user=Depends(ouath2.get_current_user),
 ):
-    post = db.query(models.Post).filter(models.Post.id == id).first()
-
-    if not post:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"post with id:{id} was not found",
-        )
-    
-    likes_count = (
-            db.query(models.Vote).filter(models.Vote.post_id == post.id).count()
-        )
-
-    upvoted = db.query(models.Vote).filter(
-            models.Vote.post_id == post.id, models.Vote.user_id == current_user.id
-        )
-    upvote_by_user = upvoted.first() is not None
-
-    response = []
-    response.append({"Post": post, "upvoted": upvote_by_user, "votes": likes_count})
-
-
-    return response[0]
-
-
-# delete post
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(
-    id: int,
-    db: Session = Depends(get_db),
-    current_user: int = Depends(ouath2.get_current_user),
-):
-    # cursor.execute("""DELETE FROM posts WHERE id = %s returning *""", (str(id)))
-    # deleted_post = cursor.fetchone()
-    # conn.commit()
-
     post_query = db.query(models.Post).filter(models.Post.id == id)
     post = post_query.first()
 
     if not post:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"post with id:{id} was not found",
-        )
-
+        raise HTTPException(status_code=404, detail="Post not found")
     if post.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to perform the requested action",
-        )
+        raise HTTPException(status_code=403, detail="Not authorized to perform action")
+
+    post_query.update(updated_post.dict(), synchronize_session=False)
+    db.commit()
+    return post_query.first()
+
+
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(ouath2.get_current_user),
+):
+    post_query = db.query(models.Post).filter(models.Post.id == id)
+    post = post_query.first()
+
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if post.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to perform action")
 
     post_query.delete(synchronize_session=False)
     db.commit()
+    return
 
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+@router.get("/{post_id}/comments/", response_model=List[schemas.Comment], tags=["Comments"])
+def get_comments(post_id: int, db: Session = Depends(get_db)):
+    comments = db.query(models.Comments).filter(
+        models.Comments.post_id == post_id
+    ).all()
+    return comments
 
-
-# update post
-@router.put(
-    "/{id}",
-    response_model=schemas.Post,
-)
-def update_post(
-    id: int,
-    post: schemas.PostCreate,
-    db: Session = Depends(get_db),
-    current_user: int = Depends(ouath2.get_current_user),
-):
-    # cursor.execute(
-    #     """UPDATE posts  SET title = %s, content = %s ,published= %s WHERE id = %s""",
-    #     (post.title, post.content, post.published, str(id)),
-    # )
-
-    # updated_post = cursor.fetchone()
-    # conn.commit()
-
-    post_query = db.query(models.Post).filter(models.Post.id == id)
-    post_first = post_query.first()
-
-    if not post_first:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"post with id:{id} was not found",
-        )
-
-    if post_first.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to perform the requested action",
-        )
-
-    post_query.update(post.model_dump(), synchronize_session=False)  # type: ignore
+@router.post("/{post_id}/comments/", response_model=schemas.Comment, tags=["Comments"])
+def create_comment(post_id: int, comment: schemas.CommentCreate, 
+                  db: Session = Depends(get_db),
+                  current_user = Depends(ouath2.get_current_user)):
+    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    new_comment = models.Comments(
+        **comment.dict(), post_id=post_id, user_id=current_user.id
+    )
+    db.add(new_comment)
     db.commit()
-
-    return post_query.first()
-
+    db.refresh(new_comment)
+    return new_comment
