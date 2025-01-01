@@ -1,5 +1,6 @@
 from typing import Optional
 from fastapi import status, HTTPException, Depends, APIRouter
+from sqlalchemy import func
 
 from app import ouath2
 from .. import models, schemas, utils
@@ -27,8 +28,18 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 @router.get("/{id}", response_model=schemas.User)
 def get_user(id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == id).first()
-    db.commit()
+    user = (
+        db.query(
+            models.User,
+            func.coalesce(func.count(models.Post.id), 0).label("posts"),
+            func.coalesce(func.count(models.Comments.id), 0).label("comments")
+        )
+        .outerjoin(models.Post, models.Post.owner_id == models.User.id)
+        .outerjoin(models.Comments, models.Comments.user_id == models.User.id)
+        .group_by(models.User.id)
+        .filter(models.User.id == id)
+        .first()    
+    )
 
     if not user:
         raise HTTPException(
@@ -36,5 +47,6 @@ def get_user(id: int, db: Session = Depends(get_db)):
             detail=f"User with id: {id} does not exist",
         )
 
-    return user
+    response = user[0].__dict__
 
+    return response

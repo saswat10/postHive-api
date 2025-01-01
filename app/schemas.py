@@ -19,6 +19,10 @@ class User(BaseModel):
     class Config:
         from_attributes = True
 
+class UserOut(User):
+    posts: int
+    comments: int
+
 # Post schemas
 class PostBase(BaseModel):
     title: str
