@@ -3,7 +3,7 @@ from .. import models, schemas, ouath2
 from ..database import get_db
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 
 router = APIRouter(
     prefix="/posts",
@@ -25,31 +25,49 @@ def create_post(
 
 
 @router.get("/", response_model=List[schemas.PostWithVotes])
-def get_posts(db: Session = Depends(get_db), limit: int = 10, skip: int = 0):
+def get_posts(db: Session = Depends(get_db), limit: int = 100, skip: int = 0, current_user= Depends(ouath2.get_current_user)):
 
     
     posts = (
-        db.query(
-            models.Post,
-            func.coalesce(func.count(models.Vote.post_id), 0).label("votes"),
-            func.coalesce(func.count(models.Comments.id), 0).label("comments")
-        )
-        .outerjoin(models.Vote, models.Vote.post_id == models.Post.id)
-        .outerjoin(models.Comments, models.Comments.post_id == models.Post.id)
-        .group_by(models.Post.id)  
-        .order_by(models.Post.id.asc())
+        db.query(models.Post)
+        .order_by(models.Post.created_at.desc())
         .limit(limit)
         .offset(skip)
         .all()
     )
 
+    # Fetch votes for the current user
+    user_votes = {
+        vote.post_id
+        for vote in db.query(models.Vote)
+        .filter(models.Vote.user_id == current_user.id)
+        .all()
+    }
+
+    # Count votes for each post
+    votes_count = {
+        post_id: count
+        for post_id, count in db.query(models.Vote.post_id, func.count(models.Vote.post_id))
+        .group_by(models.Vote.post_id)
+        .all()
+    }
+
+    # Count comments for each post
+    comments_count = {
+        post_id: count
+        for post_id, count in db.query(models.Comments.post_id, func.count(models.Comments.post_id))
+        .group_by(models.Comments.post_id)
+        .all()
+    }
+
     return [
         {
-            **post[0].__dict__,
-            "votes": post[1],
-            "comments": post[2],
+            **post.__dict__,
+            "votes": votes_count.get(post.id, 0),
+            "comments": comments_count.get(post.id, 0),
+            "has_voted": current_user.id in user_votes,
             "owner": db.query(models.User)
-            .filter(models.User.id == post[0].owner_id)
+            .filter(models.User.id == post.owner_id)
             .first(),
         }
         for post in posts
@@ -57,31 +75,49 @@ def get_posts(db: Session = Depends(get_db), limit: int = 10, skip: int = 0):
 
 
 @router.get("/{id}", response_model=schemas.PostWithVotes)
-def get_post(id: int, db: Session = Depends(get_db)):
-    result = (
-        db.query(
-            models.Post,
-            func.coalesce(func.count(models.Vote.post_id), 0).label("votes"),
-            func.coalesce(func.count(models.Comments.id), 0).label("comments")
-        )
-        .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
-        .join(models.Comments, models.Comments.post_id == models.Post.id, isouter=True)
-        .group_by(models.Post)
-        .filter(models.Post.id == id)
-        .first()
-    )
-
-    if not result:
+def get_post(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(ouath2.get_current_user),
+):
+    # Fetch the post
+    post = db.query(models.Post).filter(models.Post.id == id).first()
+    if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    post = result[0].__dict__
-    post["votes"] = result[1]
-    post["comments"] = result[2]
-    post["owner"] = (
-        db.query(models.User).filter(models.User.id == result[0].owner_id).first()
+    # Fetch votes count
+    votes_count = (
+        db.query(func.count(models.Vote.post_id))
+        .filter(models.Vote.post_id == id)
+        .scalar()
     )
 
-    return post
+    # Fetch comments count
+    comments_count = (
+        db.query(func.count(models.Comments.id))
+        .filter(models.Comments.post_id == id)
+        .scalar()
+    )
+
+    # Check if the user has voted
+    has_voted = (
+        db.query(models.Vote)
+        .filter(models.Vote.post_id == id, models.Vote.user_id == current_user.id)
+        .first()
+        is not None
+    )
+
+    # Fetch post owner
+    owner = db.query(models.User).filter(models.User.id == post.owner_id).first()
+
+    return {
+        **post.__dict__,
+        "votes": votes_count,
+        "comments": comments_count,
+        "has_voted": has_voted,
+        "owner": owner,
+    }
+
 
 
 @router.put("/{id}", response_model=schemas.Post)

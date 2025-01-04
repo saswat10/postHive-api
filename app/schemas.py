@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic.types import conint
 
@@ -44,6 +44,7 @@ class Post(PostBase):
 class PostWithVotes(Post):
     votes: int
     comments: int
+    has_voted: bool
 
 # Comment schemas
 class CommentBase(BaseModel):
@@ -78,3 +79,19 @@ class TokenData(BaseModel):
 class Vote(BaseModel):
     post_id: int
     dir: conint(le=1)  # type: ignore
+
+class UserPost(BaseModel):
+    id: int
+    title: str
+    content: str
+    created_at: datetime
+    published: bool
+    owner_id: int
+    votes: int
+    comments: int
+
+class UserWithPosts(User):
+    posts: List[UserPost]
+    
+    class Config:
+        from_attributes = True

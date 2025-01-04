@@ -50,3 +50,40 @@ def get_user(id: int, db: Session = Depends(get_db)):
     response = user[0].__dict__
 
     return response
+
+@router.get("/user/me", response_model=schemas.UserWithPosts)
+def get_current_user_profile(
+    db: Session = Depends(get_db),
+    current_user:int=Depends(ouath2.get_current_user),
+):
+    # Fetch user's posts
+    posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
+
+    # Prepare posts with votes and comments
+    posts_list = []
+    for post in posts:
+        votes_count = (
+            db.query(func.count(models.Vote.post_id))
+            .filter(models.Vote.post_id == post.id)
+            .scalar()
+        )
+        comments_count = (
+            db.query(func.count(models.Comments.id))
+            .filter(models.Comments.post_id == post.id)
+            .scalar()
+        )
+        posts_list.append(
+            {
+                **post.__dict__,
+                "votes": votes_count,
+                "comments": comments_count,
+            }
+        )
+
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "created_at": current_user.created_at,
+        "posts": posts_list,
+    }
