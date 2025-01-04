@@ -65,7 +65,7 @@ def get_posts(db: Session = Depends(get_db), limit: int = 100, skip: int = 0, cu
             **post.__dict__,
             "votes": votes_count.get(post.id, 0),
             "comments": comments_count.get(post.id, 0),
-            "has_voted": current_user.id in user_votes,
+            "has_voted": post.id in user_votes,
             "owner": db.query(models.User)
             .filter(models.User.id == post.owner_id)
             .first(),
