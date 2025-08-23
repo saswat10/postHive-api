@@ -5,7 +5,7 @@ from sqlmodel import select, desc
 
 from ..entities.user import User
 from .models import UserCreateModel
-from ..utils import hash, verify
+from .utils import hash, verify
 
 class AuthService:
     async def get_user(self, email: EmailStr, session: AsyncSession):

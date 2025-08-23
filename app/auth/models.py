@@ -13,3 +13,7 @@ class UserModel(BaseModel):
     name: str = Field(nullable=False)
     email: str = Field(nullable=False, unique=True, index=True)
     created_at: datetime
+
+class UserLoginModel(BaseModel):
+    email: EmailStr
+    password: str

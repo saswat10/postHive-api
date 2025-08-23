@@ -3,7 +3,8 @@ from fastapi import status, HTTPException, Depends, APIRouter
 from sqlalchemy import func
 
 from app import ouath2
-from .. import models, schemas, utils
+from ..auth import utils
+from .. import models, schemas
 from ..database import get_db
 from sqlalchemy.orm import Session
 
