@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from .db.main import init_db
 from .posts.controller import post_router
+from .auth.controller import auth_router
 
 @asynccontextmanager
 async def life_span(app:FastAPI):
@@ -34,3 +35,4 @@ app.add_middleware(
 )
 
 app.include_router(post_router, prefix=f"{version_prefix}/posts", tags=["posts"])
+app.include_router(auth_router, prefix=f"{version_prefix}/auth", tags=["auth"])
