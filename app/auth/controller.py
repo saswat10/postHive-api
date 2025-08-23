@@ -9,11 +9,12 @@ from .service import AuthService
 from .models import UserCreateModel, UserModel, UserLoginModel
 from ..db.main import get_session
 from .utils import verify, create_access_token
-from .dependencies import RefreshTokenBearer, AccessTokenBearer
+from .dependencies import RefreshTokenBearer, AccessTokenBearer, get_current_user, RoleChecker
 from ..db.redis import add_jti_to_blocklist
 
 auth_router = APIRouter()
 auth_service = AuthService()
+role_checker = RoleChecker(['admin'])
 
 
 @auth_router.post("/signup", response_model=UserModel)
@@ -45,7 +46,7 @@ async def login_user(
         password_valid = verify(password, user.password)
         if password_valid:
             access_token = create_access_token(
-                user_data={"email": user.email, "user_uid": str(user.uid)}
+                user_data={"email": user.email, "user_uid": str(user.uid), "role": user.role}
             )
 
             refresh_token = create_access_token(
@@ -67,6 +68,9 @@ async def login_user(
         status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Email or Password"
     )
 
+@auth_router.get("/me")
+async def get_current_user(user = Depends(get_current_user)):
+    return user
 
 @auth_router.get("/refresh")
 async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer())):

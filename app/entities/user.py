@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from sqlmodel import Field, SQLModel, Column, Relationship
@@ -15,10 +15,12 @@ class User(SQLModel, table=True):
     name: str = Field(nullable=False)
     email: str = Field(nullable=False, unique=True, index=True)
     password: str = Field(nullable=False)
-    created_at: datetime = Field(
-        default_factory=datetime.utcnow, nullable=False
+    role: str = Field(
+        sa_column=Column(pg.VARCHAR, nullable=False, server_default="user")
     )
-
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc), nullable=False
+    )
 
     def __repr__(self):
         return f"<User {self.name}>"

@@ -17,7 +17,6 @@ version_prefix = f"/api/{version}"
 
 app = FastAPI(
     title="PostHive API",
-    lifespan=life_span,
     version=version,
     openapi_url=f"{version_prefix}/openapi.json",
     docs_url=f"{version_prefix}/docs",
