@@ -1,8 +1,9 @@
-from sqlmodel import create_engine, text
+from sqlmodel import create_engine, SQLModel
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import sessionmaker
 from app.config import settings
+from ..entities.post import Post
 
 # local machine
 SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{settings.database_username}:Postgres%40123@{settings.database_hostname}:{settings.database_port}/{settings.database_name}"
@@ -15,10 +16,8 @@ engine = AsyncEngine(
 
 async def init_db() -> None:
     async with engine.begin() as conn:
-        statement = text("SELECT 'hello';")
-        result = await conn.execute(statement)
-        print(result.all())
-
+        await conn.run_sync(SQLModel.metadata.create_all)
+        
 
 async def get_session() -> AsyncSession:
     Session = sessionmaker(
@@ -28,4 +27,5 @@ async def get_session() -> AsyncSession:
     )
 
     async with Session() as session:
+
         yield session

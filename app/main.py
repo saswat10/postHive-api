@@ -1,17 +1,8 @@
 from fastapi import FastAPI
-from . import models, config
-from .database import engine
-from .routers import post, user, auth, vote, comments
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
 from contextlib import asynccontextmanager
 from .db.main import init_db
-
-
-# uncomment the code below if you plan to use SQLalchemy
-# instead of Alembic
-# models.Base.metadata.create_all(bind=engine)
-
+from .posts.controller import post_router
 
 @asynccontextmanager
 async def life_span(app:FastAPI):
@@ -20,9 +11,16 @@ async def life_span(app:FastAPI):
     yield
     print(f"Server has been stopped")
 
+version = "v2"
+version_prefix = f"/api/{version}"
+
 app = FastAPI(
     title="PostHive API",
-    lifespan=life_span
+    lifespan=life_span,
+    version=version,
+    openapi_url=f"{version_prefix}/openapi.json",
+    docs_url=f"{version_prefix}/docs",
+    redoc_url=f"{version_prefix}/redoc"
 )
 
 origins = ["*"]
@@ -35,8 +33,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(vote.router)
-app.include_router(post.router)
-app.include_router(user.router)
-app.include_router(auth.router)
-app.include_router(comments.router)
+app.include_router(post_router, prefix=f"{version_prefix}/posts", tags=["posts"])
