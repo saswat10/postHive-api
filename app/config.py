@@ -11,6 +11,8 @@ class Settings(BaseSettings):
   algorithm: str
   access_token_expire_minutes: int
   postgres_url: str
+  REDIS_HOST: str = "localhost"
+  REDIS_PORT: int = 6379
   
   class Config:
     env_file=".env"
