@@ -2,7 +2,6 @@ import uuid
 from datetime import datetime
 from pydantic import BaseModel
 from typing import List
-from ..comments.models import ParentCommentModel
 
 class Post(BaseModel):
     uid: uuid.UUID
@@ -11,9 +10,6 @@ class Post(BaseModel):
     published: bool
     created_at: datetime
     updated_at: datetime
-
-class PostWithCommentsModel(Post):
-    comments: List[ParentCommentModel]
 
 class PostCreateModel(BaseModel):
     title: str

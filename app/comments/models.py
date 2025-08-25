@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 import uuid
 from datetime import datetime
 
@@ -11,9 +11,12 @@ class ParentCommentModel(BaseModel):
     content: str
     user_uid: Optional[uuid.UUID]
     post_uid: Optional[uuid.UUID]
+    parent_comment_id: Optional[uuid.UUID]
     created_at: datetime
     updated_at: datetime
 
+    replies: Optional[List["ParentCommentModel"]]
 
+ParentCommentModel.model_rebuild()
 class ReplyModel(ParentCommentModel):
     parent_comment_id: Optional[uuid.UUID]

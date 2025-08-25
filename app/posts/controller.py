@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from .service import PostService
-from .models import Post, PostCreateModel, PostUpdateModel, PostWithCommentsModel
+from .models import Post, PostCreateModel, PostUpdateModel
 from ..db.main import get_session
 from ..auth.dependencies import AccessTokenBearer, RoleChecker
 
@@ -28,7 +28,7 @@ async def get_all_posts(
 
 @post_router.get(
     "/{post_uid}",
-    response_model=PostWithCommentsModel,
+    response_model=Post,
     status_code=status.HTTP_200_OK,
     dependencies=[role_checker],
 )
