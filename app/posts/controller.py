@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from .service import PostService
-from .models import Post, PostCreateModel, PostUpdateModel
+from .models import Post, PostCreateModel, PostUpdateModel, PostWithCommentsModel
 from ..db.main import get_session
 from ..auth.dependencies import AccessTokenBearer, RoleChecker
 
@@ -28,7 +28,7 @@ async def get_all_posts(
 
 @post_router.get(
     "/{post_uid}",
-    response_model=Post,
+    response_model=PostWithCommentsModel,
     status_code=status.HTTP_200_OK,
     dependencies=[role_checker],
 )
@@ -44,6 +44,26 @@ async def get_post(
         )
     return post
 
+@post_router.get(
+    "/user/{user_uid}",
+    response_model=Post,
+    status_code=status.HTTP_200_OK,
+    tags=["user", "posts"]
+)
+async def get_user_posts(
+    user_uid: str,
+    session: AsyncSession = Depends(get_session),
+    token_details: dict = Depends(access_token_bearer) 
+):
+    posts = await post_service.get_user_posts(user_uid, session)
+    print(posts)
+    if not posts:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=""
+        )
+    
+    return posts
+    
 
 @post_router.post(
     "/",
@@ -54,9 +74,10 @@ async def get_post(
 async def create_post(
     post_data: PostCreateModel,
     session: AsyncSession = Depends(get_session),
-    _: dict = Depends(access_token_bearer),
+    token_details: dict = Depends(access_token_bearer),
 ):
-    return await post_service.create_post(post_data, session)
+    user_id  =token_details.get('user')['user_uid']
+    return await post_service.create_post(post_data, user_id, session)
 
 
 @post_router.put(

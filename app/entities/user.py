@@ -22,5 +22,9 @@ class User(SQLModel, table=True):
         default_factory=lambda: datetime.now(timezone.utc), nullable=False
     )
 
+    # Relationships
+    posts: List["Post"] = Relationship(back_populates="user")
+    comments: List["Comments"] = Relationship(back_populates="user")
+
     def __repr__(self):
         return f"<User {self.name}>"
