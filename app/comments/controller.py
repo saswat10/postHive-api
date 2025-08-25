@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi import APIRouter
+from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
-from .models import CommentCreateModel, ParentCommentModel, ReplyModel
+from .models import CommentCreateModel, ParentCommentModel
 from ..db.main import get_session
 from .service import CommentsService
 from ..entities.user import User
@@ -10,6 +10,37 @@ from ..auth.dependencies import get_current_user
 
 comments_router = APIRouter()
 comments_service = CommentsService()
+
+
+
+@comments_router.get(
+    "/post/{post_uid}",
+    response_model=List[ParentCommentModel],
+    status_code=status.HTTP_201_CREATED,
+)
+async def get_post_comments(
+    post_uid: str,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    return await comments_service.get_comments_without_replies(
+        post_uid, session
+    )
+
+
+@comments_router.get(
+    "/replies/{comment_uid}",
+    response_model=List[ParentCommentModel],
+    status_code=status.HTTP_201_CREATED,
+)
+async def get_comment_replies(
+    comment_uid: str,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    return await comments_service.get_replies(
+        comment_uid, session
+    )
 
 
 @comments_router.post(
@@ -27,7 +58,6 @@ async def create_comment(
         comment, post_uid, current_user.email, session
     )
 
-
 @comments_router.post(
     "/reply/{comment_uid}",
     response_model=ParentCommentModel,
@@ -43,6 +73,7 @@ async def add_reply(
         comment_uid, reply, current_user.email, session
     )
 
+
 @comments_router.put(
     "/{comment_uid}",
     response_model=ParentCommentModel,
@@ -57,6 +88,7 @@ async def update_comment(
     return await comments_service.update_comment(
         comment_uid, updated_comment, current_user.email, session
     )
+
 
 @comments_router.delete(
     "/{comment_uid}",

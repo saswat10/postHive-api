@@ -14,9 +14,3 @@ class ParentCommentModel(BaseModel):
     parent_comment_id: Optional[uuid.UUID]
     created_at: datetime
     updated_at: datetime
-
-    replies: Optional[List["ParentCommentModel"]]
-
-ParentCommentModel.model_rebuild()
-class ReplyModel(ParentCommentModel):
-    parent_comment_id: Optional[uuid.UUID]
