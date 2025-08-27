@@ -9,6 +9,7 @@ from alembic import context
 from app.entities.user import User
 from app.entities.post import Post
 from app.entities.comments import Comments
+from app.entities.votes import Votes
 from app.config import settings
 from sqlmodel import SQLModel
 

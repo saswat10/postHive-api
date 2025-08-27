@@ -5,6 +5,7 @@ from .db.main import init_db
 from .posts.controller import post_router
 from .auth.controller import auth_router
 from .comments.controller import comments_router
+from .votes.controller import vote_router
 
 @asynccontextmanager
 async def life_span(app:FastAPI):
@@ -37,3 +38,4 @@ app.add_middleware(
 app.include_router(post_router, prefix=f"{version_prefix}/posts", tags=["posts"])
 app.include_router(auth_router, prefix=f"{version_prefix}/auth", tags=["auth"])
 app.include_router(comments_router, prefix=f"{version_prefix}/comments", tags=["comments"])
+app.include_router(vote_router, prefix=f"{version_prefix}/vote", tags=["vote"])
