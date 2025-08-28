@@ -10,6 +10,7 @@ from app.entities.user import User
 from app.entities.post import Post
 from app.entities.comments import Comments
 from app.entities.votes import Votes
+from app.entities.communities import Communities
 from app.config import settings
 from sqlmodel import SQLModel
 

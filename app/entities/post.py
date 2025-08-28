@@ -17,6 +17,9 @@ class Post(SQLModel, table=True):
     user_uid: Optional[uuid.UUID] = Field(
         default=None, foreign_key="users.uid"
     )
+    community_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="communities.uid"
+    )
     created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
     updated_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
 

@@ -25,6 +25,7 @@ class User(SQLModel, table=True):
     # Relationships
     posts: List["Post"] = Relationship(back_populates="user")
     comments: List["Comments"] = Relationship(back_populates="user")
+    communities_created: List["Communities"] = Relationship(back_populates="creator")
 
     def __repr__(self):
         return f"<User {self.name}>"

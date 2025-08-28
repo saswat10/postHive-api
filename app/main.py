@@ -6,6 +6,7 @@ from .posts.controller import post_router
 from .auth.controller import auth_router
 from .comments.controller import comments_router
 from .votes.controller import vote_router
+from .communities.controller import community_router
 
 @asynccontextmanager
 async def life_span(app:FastAPI):
@@ -39,3 +40,4 @@ app.include_router(post_router, prefix=f"{version_prefix}/posts", tags=["posts"]
 app.include_router(auth_router, prefix=f"{version_prefix}/auth", tags=["auth"])
 app.include_router(comments_router, prefix=f"{version_prefix}/comments", tags=["comments"])
 app.include_router(vote_router, prefix=f"{version_prefix}/vote", tags=["vote"])
+app.include_router(community_router, prefix=f"{version_prefix}/communities", tags=["community"])
