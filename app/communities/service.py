@@ -87,11 +87,18 @@ class CommunityService:
 
     async def get_subscriptions(self, session: AsyncSession, user_uid: str):
         statement = select(Subscription).where(
-            Subscription.user_uid == user
+            Subscription.user_uid == user_uid
         )
+        result = await session.exec(statement=statement)
+        subscriptions = result.all()
+        return subscriptions
 
-    async def get_subscribers():
-        pass
+    async def get_subscribers(self, session: AsyncSession, community_uid: str):
+        statement = select(Subscription).where(
+            Subscription.community_id == community_uid
+        )
+        result = await session.exec(statement)
+        return result.all()
 
     def create_slug(self, name: str)->str:
         name = unicodedata.normalize("NFKD", name)

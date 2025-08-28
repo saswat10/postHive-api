@@ -16,10 +16,7 @@ class Subscription(SQLModel, table=True):
     community_id: Optional[uuid.UUID] = Field(
         default=None, foreign_key="communities.uid"
     )
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc), nullable=False
-    )
-
+    created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
 
     def __repr__(self):
         return f"<Subscription {self.name}>"

@@ -32,11 +32,45 @@ async def get_all_communities(session: AsyncSession = Depends(get_session)):
     return await community_service.get_communities(session=session)
 
 
-@community_router.get("/{name}", response_model=CommunityModel, status_code=status.HTTP_200_OK)
+@community_router.get(
+    "/{name}", response_model=CommunityModel, status_code=status.HTTP_200_OK
+)
 async def get_community(name: str, session: AsyncSession = Depends(get_session)):
     return await community_service.get_community(name=name, session=session)
 
-@community_router.post("/join/{community_name}", status_code=status.HTTP_201_CREATED)
-async def join_community():
-    pass
 
+@community_router.post("/join/{community_name}", status_code=status.HTTP_201_CREATED)
+async def join_community(
+    community_name: str,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    communtiy = await community_service.get_community(
+        name=community_name, session=session
+    )
+    if not communtiy:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Community not found"
+        )
+    return await community_service.join_community(
+        session=session, user_uid=current_user.uid, community_uid=communtiy.uid
+    )
+
+@community_router.post("/leave/{community_name}", status_code=status.HTTP_200_OK)
+async def join_community(
+    community_name: str,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    communtiy = await community_service.get_community(
+        name=community_name, session=session
+    )
+    if not communtiy:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Community not found"
+        )
+    return await community_service.leave_community(
+        session=session, user_uid=current_user.uid, community_uid=communtiy.uid
+    )
