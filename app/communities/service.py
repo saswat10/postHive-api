@@ -3,6 +3,7 @@ from sqlmodel import select, desc,func
 from fastapi import HTTPException, status
 
 from ..entities.communities import Communities
+from ..entities.subscription import Subscription
 from .models import CommunityCreateModel, CommunityModel
 from ..auth.dependencies import get_current_user
 from ..auth.service import AuthService
@@ -57,6 +58,40 @@ class CommunityService:
         result = await session.exec(statement)
         return result.all()
     
+    async def join_community(self, session: AsyncSession, community_uid: str, user_uid: str):
+        new_subscription = Subscription(
+            user_uid=user_uid,
+            community_id=community_uid
+        )
+        session.add(new_subscription)
+        await session.commit()
+
+    async def leave_community(self, session: AsyncSession, community_uid: str, user_uid: str):
+        statement = select(Subscription).where(
+            Subscription.community_id == community_uid,
+            Subscription.user_uid == user_uid
+        )
+        result = await session.exec(statement=statement)
+        subscription = result.first()
+
+        if subscription is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="You are not subscribed to this community"
+            )
+        
+        await session.delete(subscription)
+        await session.commit()
+        return {"message": "Subscription Removed"}
+
+
+    async def get_subscriptions(self, session: AsyncSession, user_uid: str):
+        statement = select(Subscription).where(
+            Subscription.user_uid == user
+        )
+
+    async def get_subscribers():
+        pass
 
     def create_slug(self, name: str)->str:
         name = unicodedata.normalize("NFKD", name)
