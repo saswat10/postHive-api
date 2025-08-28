@@ -25,6 +25,7 @@ class Communities(SQLModel, table=True):
     posts: List["Post"] = Relationship(
         back_populates="community", sa_relationship_kwargs={"lazy":"selectin"}
     )
+    moderators: List["Moderator"] = Relationship(back_populates="community")
 
     def __repr__(self):
         return f"<Community - {self.name}>"

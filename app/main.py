@@ -1,19 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-from .db.main import init_db
 from .posts.controller import post_router
 from .auth.controller import auth_router
 from .comments.controller import comments_router
 from .votes.controller import vote_router
 from .communities.controller import community_router
+from .errors import register_all_errors
 
-@asynccontextmanager
-async def life_span(app:FastAPI):
-    print(f"Server is starting...")
-    await init_db()
-    yield
-    print(f"Server has been stopped")
 
 version = "v2"
 version_prefix = f"/api/{version}"
@@ -23,10 +16,13 @@ app = FastAPI(
     version=version,
     openapi_url=f"{version_prefix}/openapi.json",
     docs_url=f"{version_prefix}/docs",
-    redoc_url=f"{version_prefix}/redoc"
+    redoc_url=f"{version_prefix}/redoc",
+    description=""
 )
 
 origins = ["*"]
+
+register_all_errors(app=app)
 
 app.add_middleware(
     CORSMiddleware,

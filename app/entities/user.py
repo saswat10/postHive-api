@@ -18,9 +18,7 @@ class User(SQLModel, table=True):
     role: str = Field(
         sa_column=Column(pg.VARCHAR, nullable=False, server_default="user")
     )
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc), nullable=False
-    )
+    created_at: datetime = Field(datetime.now(), nullable=False)
 
     # Relationships
     posts: List["Post"] = Relationship(back_populates="user")

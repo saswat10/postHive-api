@@ -11,6 +11,7 @@ from ..db.main import get_session
 from .utils import verify, create_access_token
 from .dependencies import RefreshTokenBearer, AccessTokenBearer, get_current_user, RoleChecker
 from ..db.redis import add_jti_to_blocklist
+from ..errors import UserAlreadyExists
 
 auth_router = APIRouter()
 auth_service = AuthService()
@@ -25,10 +26,7 @@ async def create_user_account(
     user_exists = await auth_service.user_exists(email, session)
 
     if user_exists:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User with email already exists",
-        )
+        raise UserAlreadyExists()
 
     new_user = await auth_service.create_user(user_data, session)
     return new_user

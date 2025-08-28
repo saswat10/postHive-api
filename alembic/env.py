@@ -12,8 +12,12 @@ from app.entities.comments import Comments
 from app.entities.votes import Votes
 from app.entities.communities import Communities
 from app.entities.subscription import Subscription
+from app.entities.moderator import Moderator
+
 from app.config import settings
 from sqlmodel import SQLModel
+import sqlmodel
+import sqlmodel.sql.sqltypes
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

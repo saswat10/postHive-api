@@ -6,6 +6,7 @@ from sqlalchemy import Column, DateTime, func
 from sqlmodel import Field, SQLModel, Column, Relationship
 import sqlalchemy.dialects.postgresql as pg
 
+
 class Comments(SQLModel, table=True):
     __tablename__ = "comments"
 
