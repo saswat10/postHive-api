@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Field, UniqueConstraint, Relationship
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy import Column
 import sqlalchemy.dialects.postgresql as pg
 
@@ -21,6 +21,9 @@ class Communities(SQLModel, table=True):
 
     creator: Optional["User"] = Relationship(
         back_populates="communities_created", sa_relationship_kwargs={"lazy": "selectin"}
+    )
+    posts: List["Post"] = Relationship(
+        back_populates="community", sa_relationship_kwargs={"lazy":"selectin"}
     )
 
     def __repr__(self):

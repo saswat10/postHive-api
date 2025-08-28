@@ -2,6 +2,14 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from ..auth.models import UserModel
 from datetime import datetime
+import uuid
+
+class CommunityBase(BaseModel):
+    uid: uuid.UUID
+    name: str
+    slug: str
+    description: str
+
 
 class CommunityCreateModel(BaseModel):
     name: str = Field(max_length=30, min_length=3)

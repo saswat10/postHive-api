@@ -28,6 +28,7 @@ class Post(SQLModel, table=True):
     comments: List["Comments"] = Relationship(back_populates="post", sa_relationship_kwargs={
         "lazy": "selectin"
     })
+    community: "Communities" = Relationship(back_populates="posts", sa_relationship_kwargs={"lazy": "selectin"})
 
     def __repr__(self):
         return f"<Post {self.title}>"

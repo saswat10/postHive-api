@@ -13,6 +13,7 @@ import unicodedata
 
 auth_service = AuthService()
 
+
 class CommunityService:
     async def create_new_community(self, community: CommunityCreateModel, user_email: str, session: AsyncSession):
         try:    

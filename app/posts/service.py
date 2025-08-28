@@ -1,8 +1,13 @@
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select, desc
+from fastapi import HTTPException, status
 
 from ..entities.post import Post
 from .models import PostCreateModel, PostUpdateModel
+from ..communities.service import CommunityService
+
+community_service = CommunityService()
+
 
 class PostService:
     async def get_all_posts(self, session: AsyncSession):
@@ -23,9 +28,22 @@ class PostService:
         return result.all()
 
     async def create_post(self, post_data: PostCreateModel, user_id: str, session: AsyncSession):
+        community = await community_service.get_community(post_data.community_name, session)
+
+        if not community:
+            raise HTTPException(
+                status_code=status.HTTP_404_BAD_REQUEST,
+                detail="Community not found, or has been moved"
+            )
+
         post_data_dict = post_data.model_dump()
-        new_post = Post(**post_data_dict)
-        new_post.user_uid = user_id
+        new_post = Post(
+            user_uid=user_id,
+            community=community,
+            title=post_data_dict["title"],
+            content=post_data_dict["content"],
+            published=post_data_dict["published"],
+        )
         session.add(new_post)
         await session.commit()
         return new_post
