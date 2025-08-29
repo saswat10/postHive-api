@@ -6,7 +6,7 @@ from .comments.controller import comments_router
 from .votes.controller import vote_router
 from .communities.controller import community_router
 from .errors import register_all_errors
-
+from .middleware import register_middleware
 
 version = "v2"
 version_prefix = f"/api/{version}"
@@ -20,17 +20,8 @@ app = FastAPI(
     description=""
 )
 
-origins = ["*"]
-
 register_all_errors(app=app)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+register_middleware(app=app)
 
 app.include_router(post_router, prefix=f"{version_prefix}/posts", tags=["posts"])
 app.include_router(auth_router, prefix=f"{version_prefix}/auth", tags=["auth"])
