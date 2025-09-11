@@ -22,7 +22,7 @@ import sqlmodel.sql.sqltypes
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 # SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}"
-SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{settings.database_url}"
+SQLALCHEMY_DATABASE_URL = f"{settings.database_url}"
 config = context.config
 config.set_main_option('sqlalchemy.url', SQLALCHEMY_DATABASE_URL)
 
