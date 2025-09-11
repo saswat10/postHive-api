@@ -12,7 +12,6 @@ SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{settings.database_username}:Po
 engine = AsyncEngine(
     create_engine(
     url=SQLALCHEMY_DATABASE_URL,
-    echo=True
 ))
 
 async def init_db() -> None:

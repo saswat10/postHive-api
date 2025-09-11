@@ -15,6 +15,7 @@ class User(SQLModel, table=True):
     name: str = Field(nullable=False)
     email: str = Field(nullable=False, unique=True, index=True)
     password: str = Field(nullable=False)
+    is_verified: bool = Field(default=False, nullable=False)
     role: str = Field(
         sa_column=Column(pg.VARCHAR, nullable=False, server_default="user")
     )
