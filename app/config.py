@@ -10,7 +10,7 @@ class Settings(BaseSettings):
   secret_key: str
   algorithm: str
   access_token_expire_minutes: int
-  postgres_url: str
+  database_url: str
   REDIS_HOST: str = "localhost"
   REDIS_PORT: int = 6379
   
