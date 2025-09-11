@@ -7,8 +7,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 # local machine
-SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{settings.database_username}:Postgres%40123@{settings.database_hostname}:{settings.database_port}/{settings.database_name}"
-
+# SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{settings.database_username}:Postgres%40123@{settings.database_hostname}:{settings.database_port}/{settings.database_name}"
+SQLALCHEMY_DATABASE_URL = f"{settings.database_url}"
 engine = AsyncEngine(
     create_engine(
     url=SQLALCHEMY_DATABASE_URL,
